@@ -93,6 +93,8 @@ words['lyrics'] = words['good lyrics'].sum(axis=1)
 words = words.drop(['good lyrics'], axis=1)
 words = words.rename(index=str, columns={"lyrics":"good lyrics"})
 
+# convert 'like_artist' attribute to 0-10
+words['like_artist'] = (words['like_artist']/10).apply(math.ceil)
 
 words['positive'] = words[positiveWords].sum(axis=1)
 words['negative'] = words[negativeWords].sum(axis=1)
