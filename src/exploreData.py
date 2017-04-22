@@ -2,7 +2,7 @@ import pandas as pd
 import sys
 import numpy as np 
 
-trainData = pd.read_csv('Data/train.csv')
+trainData = pd.read_csv('../Data/train.csv')
 trainData.columns = [c.lower() for c in trainData.columns]
 
 rating = {}
@@ -17,7 +17,7 @@ for i in range(75,100):
 
 trainData['rating'] = trainData['rating'].map(rating)
 
-testData = pd.read_csv('Data/test.csv')
+testData = pd.read_csv('../Data/test.csv')
 
 testData.columns = [c.lower() for c in testData.columns]
 
