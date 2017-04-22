@@ -66,28 +66,27 @@ print "Words"
 # print (words.columns)
 # print words.describe()
 
-heardOfMap = {'Heard of':1, 'Heard of and listened to music EVER':1, 'Heard of and listened to music RECENTLY':1, 'Ever heard music by':1, 'Listened to recently':1  , 'Ever heard of ':1, 'Never heard of':0}
-ownMusicMap = {'Own a lot of their music':2,'Own all or most of their music':2, 'Own a little of their music':1, 'Dont know':1, 'Own none of their music':0}
+words.loc[words['heard_of']=='Never heard of','own_artist_music']='Own none of their music'
+heardOfMap = {'Heard of':1, 'Heard of and listened to music EVER':1, 'Heard of and listened to music RECENTLY':1, 'Ever heard music by':1, 'Listened to recently':1  , 'Ever heard of':1, 'Never heard of':0, 0:0}
+ownMusicMap = {'Own a lot of their music':2,'Own all or most of their music':2, 'Own a little of their music':1, 'Don\xcdt know':1,'Dont know':1, 'don`t know':1, 'Don\xd5t know':1, 'Own none of their music':0, 0:0}
 
 with open('../Data/positiveWords.txt') as f:
     content = f.readlines()
-# you may also want to remove whitespace characters like `\n` at the end of each line
 positiveWords = [x.strip().lower() for x in content] 
 
 with open('../Data/negativeWords.txt') as f:
     content = f.readlines()
-# you may also want to remove whitespace characters like `\n` at the end of each line
 negativeWords = [x.strip().lower() for x in content] 
 
 with open('../Data/neutralWords.txt') as f:
     content = f.readlines()
-# you may also want to remove whitespace characters like `\n` at the end of each line
 neutralWords = [x.strip().lower() for x in content] 
 
 # Create new db, group heard of yes/no, own artist music, like rating, words list
 # group by artist
 words['heard_of'] =  words['heard_of'].map(heardOfMap)
 words['own_artist_music'] = words['own_artist_music'].map(ownMusicMap)
+words.loc[words['heard_of']==0,'own_artist_music'] = 0
 
 # duplicate 'good lyrics'
 words['lyrics'] = words['good lyrics'].sum(axis=1)
@@ -102,7 +101,6 @@ words['neutral'] = words[neutralWords].sum(axis=1)
 words['sentiment'] = words[['positive', 'negative', 'neutral']].idxmax(axis=1)
 print positiveWords + negativeWords + neutralWords + ['positive', 'negative', 'neutral']
 words = words.drop(positiveWords + negativeWords + neutralWords + ['positive', 'negative', 'neutral'], axis = 1)
-
 
 """
 Preprocessing Users data file
@@ -121,6 +119,10 @@ for col in cols:
 
 musicMap = {'Music has no particular interest for me':0,'Music is no longer as important as it used to be to me':1, 'I like music but it does not feature heavily in my life':2,'Music is important to me but not necessarily more important than other hobbies or interests':3, 'Music is important to me but not necessarily more important':3,'Music means a lot to me and is a passion of mine':4 }
 users['MUSIC'] = users['MUSIC'].map(musicMap)
+
+# Group Region
+users.loc[users['REGION']=='North Ireland','REGION']='Northern Ireland'
+users.loc[users['REGION']=='Centre','REGION']='Midlands'
 
 
 # AGE Missing Data
@@ -146,8 +148,8 @@ labels = np.argmax(np.random.multinomial(1, dist, len(nanLoc)), axis=1)
 users.loc[nanLoc, 'REGION'] = abcd.index[labels]
 print users.loc[nanLoc,'REGION']
 
-
 print users.head()
+print users.isnull().sum()
 
 data = pd.merge(users, words, on='user')
 
