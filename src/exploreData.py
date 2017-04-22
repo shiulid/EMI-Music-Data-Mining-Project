@@ -53,7 +53,7 @@ testData.columns = [c.lower() for c in testData.columns]
 """
 Preprocessing Words file
 """
-words = pd.read_csv('Data/words.csv')
+words = pd.read_csv('../Data/words.csv')
 words.columns = [n.lower() for n in words.columns]
 print len(words.columns)
 words = words.fillna(value=0)
@@ -65,17 +65,17 @@ print "Words"
 heardOfMap = {'Heard of':1, 'Heard of and listened to music EVER':1, 'Heard of and listened to music RECENTLY':1, 'Ever heard music by':1, 'Listened to recently':1  , 'Ever heard of ':1, 'Never heard of':0}
 ownMusicMap = {'Own a lot of their music':2,'Own all or most of their music':2, 'Own a little of their music':1, 'Dont know':1, 'Own none of their music':0}
 
-with open('Data/positiveWords.txt') as f:
+with open('../Data/positiveWords.txt') as f:
     content = f.readlines()
 # you may also want to remove whitespace characters like `\n` at the end of each line
 positiveWords = [x.strip().lower() for x in content] 
 
-with open('Data/negativeWords.txt') as f:
+with open('../Data/negativeWords.txt') as f:
     content = f.readlines()
 # you may also want to remove whitespace characters like `\n` at the end of each line
 negativeWords = [x.strip().lower() for x in content] 
 
-with open('Data/neutralWords.txt') as f:
+with open('../Data/neutralWords.txt') as f:
     content = f.readlines()
 # you may also want to remove whitespace characters like `\n` at the end of each line
 neutralWords = [x.strip().lower() for x in content] 
@@ -108,7 +108,7 @@ for (index, row) in words.iterrows():
 """
 Preprocessing Users data file
 """
-users = pd.read_csv('Data/users.csv')
+users = pd.read_csv('../Data/users.csv')
 print "Users"
 print len(users.columns)
 users = users.rename(index=str, columns={'RESPID':'user'})
@@ -136,5 +136,5 @@ trainData = pd.merge(trainData, data, on='user')
 testData = pd.merge(testData, data, on='user')
 
 
-trainData.to_csv('wekaTrainingData.csv', index=False)
-testData.to_csv('wekaTestData.csv', index=False)
+trainData.to_csv('../Data/wekaTrainingData.csv', index=False)
+testData.to_csv('../Data/wekaTestData.csv', index=False)
