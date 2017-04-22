@@ -1,6 +1,8 @@
+from __future__ import division
 import pandas as pd 
 import sys
 import numpy as np 
+import matplotlib.pyplot as plt
 
 trainData = pd.read_csv('../Data/train.csv')
 trainData.columns = [c.lower() for c in trainData.columns]
@@ -53,8 +55,10 @@ testData.columns = [c.lower() for c in testData.columns]
 """
 Preprocessing Words file
 """
+
 words = pd.read_csv('../Data/words.csv')
 words.columns = [n.lower() for n in words.columns]
+words = words.iloc[:, :-1]
 print len(words.columns)
 words = words.fillna(value=0)
 
@@ -90,19 +94,14 @@ words['lyrics'] = words['good lyrics'].sum(axis=1)
 words = words.drop(['good lyrics'], axis=1)
 words = words.rename(index=str, columns={"lyrics":"good lyrics"})
 
-"""
-words['sentiment'] = ''
-for (index, row) in words.iterrows():
-	for (wordList, label) in zip([positiveWords, negativeWords, neutralWords], ['Pos','Neg', 'Neut']):
-		for w in wordList:
-			if row[w]==1:
-				words.ix[index,w] = ''.join([row['sentiment'],label])
 
-"""
-# cols = ['heard_of', 'own_artist_music']
-# for col in cols:
-#	print words[col].value_counts()
+words['positive'] = words[positiveWords].sum(axis=1)
+words['negative'] = words[negativeWords].sum(axis=1)
+words['neutral'] = words[neutralWords].sum(axis=1)
 
+words['sentiment'] = words[['positive', 'negative', 'neutral']].idxmax(axis=1)
+print positiveWords + negativeWords + neutralWords + ['positive', 'negative', 'neutral']
+words = words.drop(positiveWords + negativeWords + neutralWords + ['positive', 'negative', 'neutral'], axis = 1)
 
 
 """
@@ -122,6 +121,31 @@ for col in cols:
 
 musicMap = {'Music has no particular interest for me':0,'Music is no longer as important as it used to be to me':1, 'I like music but it does not feature heavily in my life':2,'Music is important to me but not necessarily more important than other hobbies or interests':3, 'Music is important to me but not necessarily more important':3,'Music means a lot to me and is a passion of mine':4 }
 users['MUSIC'] = users['MUSIC'].map(musicMap)
+
+
+# AGE Missing Data
+#users['AGE'].hist()
+bin_range = np.arange(0,110,10)
+out = pd.cut(users['AGE'], bins = bin_range, include_lowest = True, right = False, labels= np.arange(len(bin_range)-1))
+dist = out.value_counts(sort = False).values
+dist = dist/np.sum(dist)
+
+nanLoc = users[users['AGE'].isnull()].index
+ageBins = np.argmax(np.random.multinomial(1, dist, len(nanLoc)), axis=1)
+out[nanLoc] = ageBins
+users.loc[:, 'AGE'] = np.array(out)
+
+# REGION Missing Data
+#users['REGION'].hist()
+abcd = users['REGION'].value_counts(sort = False)
+dist = abcd.values
+dist = dist/np.sum(dist)
+
+nanLoc = users[users['REGION'].isnull()].index
+labels = np.argmax(np.random.multinomial(1, dist, len(nanLoc)), axis=1)
+users.loc[nanLoc, 'REGION'] = abcd.index[labels]
+print users.loc[nanLoc,'REGION']
+
 
 print users.head()
 
