@@ -14,7 +14,7 @@ for i in range(25,50):
 	rating[i]=1
 for i in range(50,75):
 	rating[i]=2
-for i in range(75,100):
+for i in range(75,101):
 	rating[i]=3
 
 trainData['rating'] = trainData['rating'].map(rating)
@@ -99,7 +99,6 @@ words['negative'] = words[negativeWords].sum(axis=1)
 words['neutral'] = words[neutralWords].sum(axis=1)
 
 words['sentiment'] = words[['positive', 'negative', 'neutral']].idxmax(axis=1)
-print positiveWords + negativeWords + neutralWords + ['positive', 'negative', 'neutral']
 words = words.drop(positiveWords + negativeWords + neutralWords + ['positive', 'negative', 'neutral'], axis = 1)
 
 """
@@ -110,21 +109,32 @@ print "Users"
 print len(users.columns)
 users = users.rename(index=str, columns={'RESPID':'user'})
 
+# Remove Q columns, Merge Q11 and Q12 to POP
+cols = range(8,27)
+users['POP'] = users[['Q11', 'Q12']].mean(axis = 1).round().map(rating)
+users = users.drop(users.columns[cols], axis = 1)
+
+# Map MUSIC
+musicMap = {'Music has no particular interest for me':0,'Music is no longer as important as it used to be to me':1, 'I like music but it does not feature heavily in my life':2,'Music is important to me but not necessarily more important than other hobbies or interests':3, 'Music is important to me but not necessarily more important':3,'Music means a lot to me and is a passion of mine':4 }
+users['MUSIC'] = users['MUSIC'].map(musicMap)
+
+# Merge LIST_OWN and LIST_BACK to LIST
 cols = ['LIST_OWN', 'LIST_BACK']
-hoursMap = {'1 hour':1, 'More than 16 hours': 17, '16+ hours':17, 'Less than an hour':0}
+hoursMap = {'1 hour':1, 'More than 16 hours': 17, '16+ hours':17, 'Less than an hour':1}
 for i in range(17):
 	hoursMap[str(i)+' hours'] = i
 for col in cols:
 	users[col] = users[col].map(hoursMap)
 
-musicMap = {'Music has no particular interest for me':0,'Music is no longer as important as it used to be to me':1, 'I like music but it does not feature heavily in my life':2,'Music is important to me but not necessarily more important than other hobbies or interests':3, 'Music is important to me but not necessarily more important':3,'Music means a lot to me and is a passion of mine':4 }
-users['MUSIC'] = users['MUSIC'].map(musicMap)
+users['LIST'] = users['LIST_OWN'] + users['LIST_BACK']
+users = users.drop(cols, axis = 1)
 
-# Group Region
-users.loc[users['REGION']=='North Ireland','REGION']='Northern Ireland'
-users.loc[users['REGION']=='Centre','REGION']='Midlands'
-
-
+# Handle LIST Missing Data based on MUSIC
+for group in users.groupby('MUSIC'):
+    nanLoc = group[1][group[1]['LIST'].isnull()].index
+    meanVal = np.mean(group[1]['LIST'])
+    users.loc[nanLoc,'LIST'] = np.random.poisson(meanVal, len(nanLoc))      #Poisson Distribution so that vals>=0
+   
 # AGE Missing Data
 #users['AGE'].hist()
 bin_range = np.arange(0,110,10)
@@ -137,15 +147,21 @@ ageBins = np.argmax(np.random.multinomial(1, dist, len(nanLoc)), axis=1)
 out[nanLoc] = ageBins
 users.loc[:, 'AGE'] = np.array(out)
 
+
+# Group Region
+users.loc[users['REGION']=='North Ireland','REGION']='Northern Ireland'
+users.loc[users['REGION']=='Centre','REGION']='Midlands'
+
 # REGION Missing Data
 #users['REGION'].hist()
-abcd = users['REGION'].value_counts(sort = False)
-dist = abcd.values
-dist = dist/np.sum(dist)
+regions = users['REGION'].value_counts(sort = False)
+dist = regions.values
+dist = regions/np.sum(dist)
 
 nanLoc = users[users['REGION'].isnull()].index
 labels = np.argmax(np.random.multinomial(1, dist, len(nanLoc)), axis=1)
-users.loc[nanLoc, 'REGION'] = abcd.index[labels]
+users.loc[nanLoc, 'REGION'] = regions.index[labels]
+
 print users.loc[nanLoc,'REGION']
 
 print users.head()
