@@ -3,6 +3,7 @@ import pandas as pd
 import sys
 import numpy as np 
 import matplotlib.pyplot as plt
+import math
 
 trainData = pd.read_csv('../Data/train.csv')
 trainData.columns = [c.lower() for c in trainData.columns]
@@ -102,6 +103,8 @@ words['neutral'] = words[neutralWords].sum(axis=1)
 
 words['sentiment'] = words[['positive', 'negative', 'neutral']].idxmax(axis=1)
 words = words.drop(positiveWords + negativeWords + neutralWords + ['positive', 'negative', 'neutral'], axis = 1)
+
+print words.head()
 
 """
 Preprocessing Users data file
