@@ -4,6 +4,8 @@ import sys
 import numpy as np 
 import matplotlib.pyplot as plt
 import math
+import glob
+from sklearn.cluster import KMeans
 
 trainData = pd.read_csv('../Data/train.csv')
 trainData.columns = [c.lower() for c in trainData.columns]
@@ -109,18 +111,72 @@ words['-1'] = words[negativeWords].sum(axis=1)
 words['0'] = words[neutralWords].sum(axis=1)
 
 words['sentiment'] = words[['1', '-1', '0']].idxmax(axis=1)
+
+files = glob.glob("../Data/sentimentType/*")
+wordList = {}
+for file in files:
+    with open(file) as f:
+        content = f.readlines()
+    wordList[file[22:-4]] = [x.strip().lower() for x in content]
+    
+for key in wordList:
+    words[key] = words[wordList[key]].sum(axis = 1) 
+
 words = words.drop(positiveWords + negativeWords + neutralWords + 
 	['1', '-1', '0'], axis = 1)
+
+artist = words.groupby('artist').mean()
+artist = artist.drop(artist.columns[1:6], axis = 1)
+
+#cluster artists
+cluster = 5
+kmeans = KMeans(n_clusters = cluster, random_state = 0).fit(artist)    
+artist['labels'] = kmeans.labels_
+artist['artist'] = artist.index
+words['labels'] = kmeans.labels_[words['artist']]
+
+#for groups in words.groupby(['user', 'labels']):
+#    groups[0]
+    #artistLabels = kmeans.labels_[groups[1]['artist']]
+    #sentiment = words[words['artist'].isin(artistIdx)]['sentiment'].astype(int).mean()
+    #print sentiment
+
+#for groups in words.groupby('user'):
+    #print groups[0]
+    #artistLabels = kmeans.labels_[groups[1]['artist']]
+    #sentiment = words[words['artist'].isin(artistIdx)]['sentiment'].astype(int).mean()
+    #print sentiment
+
+
+#for group in words.groupby('ARTIST'):
+#    nanLoc = group[1][group[1]['LIST'].isnull()].index
+#    meanVal = np.mean(group[1]['LIST'])
+#    users.loc[nanLoc,'LIST'] = np.random.poisson(meanVal, len(nanLoc))      #Poisson Distribution so that vals>=0
 
 print words.head()
 
 """
 Preprocessing Users data file
 """
+
 users = pd.read_csv('../Data/users.csv')
 print "Users"
 print len(users.columns)
 users = users.rename(index=str, columns={'RESPID':'user'})
+
+for x in range(cluster):
+    users[str(x)] = 0
+print users.head()
+
+for groups in words.groupby(['user', 'labels']):
+    print groups[0]
+    #artistLabels = kmeans.labels_[groups[1]['artist']]
+    #sentiment = words[words['artist'].isin(artistIdx)]['sentiment'].astype(int).mean()
+    #print sentiment
+    sentiment = groups[1]['sentiment'].astype(int).mean()
+    users.loc[users['user']==groups[0][0], str(groups[0][1])] = sentiment
+
+print users.head()
 
 # binary Gender
 users['GENDER'] = users['GENDER'].map({'Male':1, 'Female':0})
@@ -193,4 +249,4 @@ trainData = pd.merge(trainData, data, on=['user','artist'], how='left')
 trainData = trainData.dropna(axis=0)
 print trainData.shape
 
-trainData.to_csv('../Data/wekaTrainingData.csv', index=False)
+trainData.to_csv('../Data/wekaTrainingData1.csv', index=False)
