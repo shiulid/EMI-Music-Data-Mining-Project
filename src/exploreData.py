@@ -20,9 +20,16 @@ for i in range(75,101):
 
 trainData['rating'] = trainData['rating'].map(rating)
 
-testData = pd.read_csv('../Data/test.csv')
+trainData = trainData.drop(['time'], axis=1)
 
-testData.columns = [c.lower() for c in testData.columns]
+"""
+for (label, group) in trainData.groupby('artist'):
+	print label	
+	group['rating'].hist()
+	plt.show()
+
+plt.show()
+"""
 
 # print "Training Data"
 # print trainData.shape
@@ -97,12 +104,13 @@ words = words.rename(index=str, columns={"lyrics":"good lyrics"})
 # convert 'like_artist' attribute to 0-10
 words['like_artist'] = (words['like_artist']/10).apply(math.ceil)
 
-words['positive'] = words[positiveWords].sum(axis=1)
-words['negative'] = words[negativeWords].sum(axis=1)
-words['neutral'] = words[neutralWords].sum(axis=1)
+words['1'] = words[positiveWords].sum(axis=1)
+words['-1'] = words[negativeWords].sum(axis=1)
+words['0'] = words[neutralWords].sum(axis=1)
 
-words['sentiment'] = words[['positive', 'negative', 'neutral']].idxmax(axis=1)
-words = words.drop(positiveWords + negativeWords + neutralWords + ['positive', 'negative', 'neutral'], axis = 1)
+words['sentiment'] = words[['1', '-1', '0']].idxmax(axis=1)
+words = words.drop(positiveWords + negativeWords + neutralWords + 
+	['1', '-1', '0'], axis = 1)
 
 print words.head()
 
@@ -114,8 +122,11 @@ print "Users"
 print len(users.columns)
 users = users.rename(index=str, columns={'RESPID':'user'})
 
+# binary Gender
+users['GENDER'] = users['GENDER'].map({'Male':1, 'Female':0})
+
 # Remove Q columns, Merge Q11 and Q12 to POP
-cols = range(8,27)
+cols = range(8,27) 
 users['POP'] = users[['Q11', 'Q12']].mean(axis = 1).round().map(rating)
 users = users.drop(users.columns[cols], axis = 1)
 
@@ -133,6 +144,7 @@ for col in cols:
 
 users['LIST'] = users['LIST_OWN'] + users['LIST_BACK']
 users = users.drop(cols, axis = 1)
+users = users.drop(['WORKING'], axis=1)
 
 # Handle LIST Missing Data based on MUSIC
 for group in users.groupby('MUSIC'):
@@ -172,16 +184,13 @@ print users.loc[nanLoc,'REGION']
 print users.head()
 print users.isnull().sum()
 
-data = pd.merge(users, words, on='user')
+data = pd.merge(words, users, on='user', how='left')
 
-print trainData.columns
-
-
-trainData = pd.merge(trainData, data, on='user')
+trainData = pd.merge(trainData, data, on=['user','artist'], how='left')
 
 
-testData = pd.merge(testData, data, on='user')
-
+#trainData = trainData.drop(trainData[trainData['AGE'].isnull()].index)
+trainData = trainData.dropna(axis=0)
+print trainData.shape
 
 trainData.to_csv('../Data/wekaTrainingData.csv', index=False)
-testData.to_csv('../Data/wekaTestData.csv', index=False)
