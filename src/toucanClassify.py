@@ -21,7 +21,7 @@ ind = [int(x) for x in content]
 
 Data = Data.iloc[ind]
 
-RATE_INTERVAL = 10
+RATE_INTERVAL = 25
 Data['Rating'] = (Data['Rating'].astype(int)/RATE_INTERVAL).astype(int)
 
 trainData = Data
