@@ -24,7 +24,9 @@ exploreData.py
 - Analyze and preprocess data
 - Create '../Data/UserDataProcessed.csv' containing user vectors
 - Create '../Data/wekaTrainingData.csv' ( modified training data set for using off the shelf classifier )
+
 toucan_proximity.py 
 - Create proximity matrix containing the usedID of 20 nearest neighbors for each userID using UserDataProcessed.csv created
+
 toucanClassify.py
 - Use generated proximity matrix to predict rating [ Classification Task ]
