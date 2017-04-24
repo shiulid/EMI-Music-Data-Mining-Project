@@ -17,7 +17,9 @@ In this project we will be treating the rating prediction as a classification ta
 ## Code Description
 
 Go to src folder
+
 Run -
+
 python exploreData.py & python toucan_proximity.py & python toucanClassify.py
 
 exploreData.py      
@@ -26,7 +28,7 @@ exploreData.py
 - Create '../Data/wekaTrainingData.csv' ( modified training data set for using off the shelf classifier )
 
 toucan_proximity.py 
-- Create proximity matrix containing the usedID of 20 nearest neighbors for each userID using UserDataProcessed.csv created
+- Create proximity matrix containing the userIDs of 20 nearest neighbors for each userID using UserDataProcessed.csv created
 
 toucanClassify.py
 - Use generated proximity matrix to predict rating [ Classification Task ]
