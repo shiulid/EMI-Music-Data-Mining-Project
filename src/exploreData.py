@@ -176,14 +176,19 @@ for groups in words.groupby(['user', 'labels']):
     sentiment = groups[1]['sentiment'].astype(int).mean()
     users.loc[users['user']==groups[0][0], str(groups[0][1])] = sentiment
 
-print users.head()
+for x in range(cluster):
+    users[str(x)] = users[str(x)].map(lambda x: 1 if x >(1/3) else( -1 if x < (-2/3) else 0))
+
+print users.head(n=30)
 
 # binary Gender
 users['GENDER'] = users['GENDER'].map({'Male':1, 'Female':0})
 
 # Remove Q columns, Merge Q11 and Q12 to POP
 cols = range(8,27) 
-users['POP'] = users[['Q11', 'Q12']].mean(axis = 1).round().map(rating)
+users['Q_POP'] = users[['Q11', 'Q12']].mean(axis = 1).round().map(rating)
+users['Q_NEW_MUSIC'] = users[['Q1', 'Q2', 'Q3', 'Q15', 'Q17']].mean(axis=1).round().map(rating)
+users['Q_DANCE'] = users[['Q7', 'Q8']].mean(axis = 1).round().map(rating)
 users = users.drop(users.columns[cols], axis = 1)
 
 # Map MUSIC
@@ -207,6 +212,9 @@ for group in users.groupby('MUSIC'):
     nanLoc = group[1][group[1]['LIST'].isnull()].index
     meanVal = np.mean(group[1]['LIST'])
     users.loc[nanLoc,'LIST'] = np.random.poisson(meanVal, len(nanLoc))      #Poisson Distribution so that vals>=0
+
+users['LIST'] = users['LIST'].clip(upper = 24)
+users['LIST'] = users['LIST'].map(lambda x: int(x/4))
    
 # AGE Missing Data
 #users['AGE'].hist()
@@ -240,6 +248,8 @@ print users.loc[nanLoc,'REGION']
 print users.head()
 print users.isnull().sum()
 
+users.to_csv('../Data/UserDataProcessed.csv', index=False)
+
 data = pd.merge(words, users, on='user', how='left')
 
 trainData = pd.merge(trainData, data, on=['user','artist'], how='left')
@@ -249,4 +259,4 @@ trainData = pd.merge(trainData, data, on=['user','artist'], how='left')
 trainData = trainData.dropna(axis=0)
 print trainData.shape
 
-trainData.to_csv('../Data/wekaTrainingData1.csv', index=False)
+trainData.to_csv('../Data/wekaTrainingData.csv', index=False)
