@@ -25,44 +25,6 @@ trainData['rating'] = trainData['rating'].map(rating)
 trainData = trainData.drop(['time'], axis=1)
 
 """
-for (label, group) in trainData.groupby('artist'):
-	print label	
-	group['rating'].hist()
-	plt.show()
-
-plt.show()
-"""
-
-# print "Training Data"
-# print trainData.shape
-# print trainData.head()
-
-# print "Testing Data"
-# print testData.shape
-# print testData.head()
-
-# artists_mean_benchmark = pd.read_csv('Data/artists_mean_benchmark.csv', header=None)
-# global_mean_benchmark = pd.read_csv('Data/global_mean_benchmark.csv', header=None)
-# tracks_mean_benchmark = pd.read_csv('Data/tracks_mean_benchmark.csv', header=None)
-# users_mean_benchmark = pd.read_csv('Data/users_mean_benchmark.csv', header=None)
-
-# print "Artists Mean Benchmark"
-# print artists_mean_benchmark.shape
-# print artists_mean_benchmark.head()
-
-# print "Global Mean Benchmark"
-# print global_mean_benchmark.shape
-# print global_mean_benchmark.head()
-
-# print "Tracks Mean Benchmark"
-# print tracks_mean_benchmark.shape
-# print tracks_mean_benchmark.head()
-
-# print "Users Mean Benchmark"
-# print users_mean_benchmark.shape
-# print users_mean_benchmark.head()
-
-"""
 Preprocessing Words file
 """
 
@@ -135,24 +97,6 @@ artist['labels'] = kmeans.labels_
 artist['artist'] = artist.index
 words['labels'] = kmeans.labels_[words['artist']]
 
-#for groups in words.groupby(['user', 'labels']):
-#    groups[0]
-    #artistLabels = kmeans.labels_[groups[1]['artist']]
-    #sentiment = words[words['artist'].isin(artistIdx)]['sentiment'].astype(int).mean()
-    #print sentiment
-
-#for groups in words.groupby('user'):
-    #print groups[0]
-    #artistLabels = kmeans.labels_[groups[1]['artist']]
-    #sentiment = words[words['artist'].isin(artistIdx)]['sentiment'].astype(int).mean()
-    #print sentiment
-
-
-#for group in words.groupby('ARTIST'):
-#    nanLoc = group[1][group[1]['LIST'].isnull()].index
-#    meanVal = np.mean(group[1]['LIST'])
-#    users.loc[nanLoc,'LIST'] = np.random.poisson(meanVal, len(nanLoc))      #Poisson Distribution so that vals>=0
-
 print words.head()
 
 """
@@ -170,9 +114,6 @@ print users.head()
 
 for groups in words.groupby(['user', 'labels']):
     print groups[0]
-    #artistLabels = kmeans.labels_[groups[1]['artist']]
-    #sentiment = words[words['artist'].isin(artistIdx)]['sentiment'].astype(int).mean()
-    #print sentiment
     sentiment = groups[1]['sentiment'].astype(int).mean()
     users.loc[users['user']==groups[0][0], str(groups[0][1])] = sentiment
 
@@ -223,7 +164,7 @@ users['LIST'] = users['LIST'].clip(upper = 24)
 users['LIST'] = users['LIST'].map(lambda x: int(x/4))
    
 # AGE Missing Data
-#users['AGE'].hist()
+
 bin_range = np.arange(0,110,10)
 out = pd.cut(users['AGE'], bins = bin_range, include_lowest = True, right = False, labels= np.arange(len(bin_range)-1))
 dist = out.value_counts(sort = False).values
@@ -240,7 +181,7 @@ users.loc[users['REGION']=='North Ireland','REGION']='Northern Ireland'
 users.loc[users['REGION']=='Centre','REGION']='Midlands'
 
 # REGION Missing Data
-#users['REGION'].hist()
+
 regions = users['REGION'].value_counts(sort = False)
 dist = regions.values
 dist = regions/np.sum(dist)
@@ -261,7 +202,7 @@ data = pd.merge(words, users, on='user', how='left')
 trainData = pd.merge(trainData, data, on=['user','artist'], how='left')
 
 
-#trainData = trainData.drop(trainData[trainData['AGE'].isnull()].index)
+
 trainData = trainData.dropna(axis=0)
 print trainData.shape
 
