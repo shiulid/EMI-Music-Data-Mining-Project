@@ -13,3 +13,18 @@ Words – Contains data that shows how people describe the artists they have hea
 Users – User details such as demographics, age, etc and answers to some music habit questions.
 
 In this project we will be treating the rating prediction as a classification task by binning the rating values. We will analyze the data, develop and evaluate an efficient way of predicting the rating feature bin. 
+
+## Code Description
+
+Go to src folder
+Run -
+python exploreData.py & python toucan_proximity.py & python toucanClassify.py
+
+exploreData.py      
+- Analyze and preprocess data
+- Create '../Data/UserDataProcessed.csv' containing user vectors
+- Create '../Data/wekaTrainingData.csv' ( modified training data set for using off the shelf classifier )
+toucan_proximity.py 
+- Create proximity matrix containing the usedID of 20 nearest neighbors for each userID using UserDataProcessed.csv created
+toucanClassify.py
+- Use generated proximity matrix to predict rating [ Classification Task ]
