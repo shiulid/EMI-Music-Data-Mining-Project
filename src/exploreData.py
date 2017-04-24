@@ -198,12 +198,18 @@ users['MUSIC'] = users['MUSIC'].map(musicMap)
 # Merge LIST_OWN and LIST_BACK to LIST
 cols = ['LIST_OWN', 'LIST_BACK']
 hoursMap = {'1 hour':1, 'More than 16 hours': 17, '16+ hours':17, 'Less than an hour':1}
-for i in range(17):
+for i in range(25):
 	hoursMap[str(i)+' hours'] = i
+	hoursMap[str(i)+' Hours'] = i
+	hoursMap[str(i)]=i
+	hoursMap[(i)]=i
 for col in cols:
 	users[col] = users[col].map(hoursMap)
 
+
 users['LIST'] = users['LIST_OWN'] + users['LIST_BACK']
+print "COUNT = ", users['LIST'].isnull().sum()
+sys.exit(0)
 users = users.drop(cols, axis = 1)
 users = users.drop(['WORKING'], axis=1)
 
